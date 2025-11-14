@@ -1,3 +1,66 @@
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+var player;
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+    videoId: "HeQX2HjkcNo",
+    playerVars: {
+        'playsinline': 1,
+        'controls': 0
+    },
+    events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+    }
+    });
+}
+
+function onPlayerReady(event) {
+    event.target.playVideo();
+}
+
+function onPlayerStateChange(event){
+    button = document.getElementById("toggleablePause")
+    state = player.getPlayerState();
+
+    if (state === 1){ //running
+        button.textContent = "play_arrow";
+    }
+    else {
+        button.textContent = "pause";
+    }
+}
+
+function toggleablePause(){
+    button = document.getElementById("toggleablePause");
+    
+    if (button.innerHTML == "play_arrow"){
+        button.textContent = "pause";
+        player.pauseVideo();
+    } 
+    else if (button.innerHTML == "pause"){
+        button.textContent = "play_arrow";
+        player.playVideo();
+    }
+}
+
+function toggleableVisibility(){
+    button = document.getElementById("toggleableVisibility");
+    
+    if (button.innerHTML == "visibility"){
+        button.textContent = "visibility_off";
+        document.getElementById('player').style.filter = 'blur(50px)'; 
+    } 
+    else if (button.innerHTML == "visibility_off"){
+        button.textContent = "visibility";
+        document.getElementById('player').style.filter = 'none'; 
+    }
+}
+
+
 function loadCSV() {
     const fileInput = document.getElementById('csvFile');
     const file = fileInput.files[0];
