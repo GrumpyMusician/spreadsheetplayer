@@ -18,8 +18,27 @@ function onYouTubeIframeAPIReady() {
     });
 }
 
+function clock() {
+    timeTotal = player.getDuration();
+    timeEllapsed = player.getCurrentTime();
+
+    document.getElementById("timestamp").innerHTML =
+        toHMS(timeEllapsed) + "/" + toHMS(timeTotal);
+    
+    if (dragging) return;
+
+    setDuration(timeTotal);
+    setPosition(timeEllapsed);
+
+    
+}
+
+
 function onPlayerReady(event) {
-    event.target.playVideo();
+    setTimeout(() => {
+        event.target.playVideo();
+    }, 50);
+    setInterval(clock, 100);
 }
 
 function onPlayerStateChange(event){
@@ -60,7 +79,7 @@ function toggleableVisibility(){
     }
 }
 
-
+var CSV;
 function loadCSV() {
     const fileInput = document.getElementById('csvFile');
     const file = fileInput.files[0];
@@ -88,9 +107,7 @@ function loadCSV() {
         }).join(',');
         });
 
-        const CSV = quotedLines.join('\n');
-
-        console.log(CSV);
+        CSV = quotedLines.join('\n');
     };
 
     reader.readAsText(file);
@@ -98,3 +115,87 @@ function loadCSV() {
     alert('Please select a CSV file.');
     }
 }
+
+function toHMS(totalSeconds) {
+    totalSeconds = Number(totalSeconds);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    const hDisplay = hours > 0 ? String(hours).padStart(2, '0') + ':' : '';
+    const mDisplay = String(minutes).padStart(2, '0') + ':';
+    const sDisplay = String(seconds).padStart(2, '0');
+    return hDisplay + mDisplay + sDisplay;
+}
+
+function toSec(hms) {
+    const parts = hms.split(':').map(Number);
+    if (parts.length === 3) {
+        // hh:mm:ss
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+        // mm:ss
+        return parts[0] * 60 + parts[1];
+    } else if (parts.length === 1) {
+        // ss
+        return parts[0];
+    } else {
+        throw new Error("Invalid time format");
+    }
+}
+
+let duration = 30; // in seconds
+const bar = document.getElementById("bar");
+const progress = document.getElementById("progress");
+const handle = document.getElementById("handle");
+let currentTime = 0; // in seconds
+let dragging = false;
+
+function update() {
+    const pct = (currentTime / duration) * 100;
+    progress.style.width = pct + "%";
+    handle.style.left = pct + "%";
+}
+
+function setPosition(seconds) {
+    let v = Math.round(Number(seconds));
+    if (isNaN(v)) return;
+    currentTime = Math.max(0, Math.min(duration, v));
+    update();
+}
+
+function getPosition() {
+    return currentTime;
+}
+
+function setDuration(seconds) {
+    let d = Math.round(Number(seconds));
+    if (isNaN(d) || d <= 0) return;
+    duration = d;
+    currentTime = Math.min(currentTime, duration);
+    update();
+}
+
+bar.onclick = e => {
+    if (dragging) return;
+    const x = e.offsetX / bar.clientWidth;
+    setPosition(Math.round(x * duration));
+    player.seekTo(currentTime, true);
+};
+
+bar.onmousedown = () => {
+    dragging = true;
+
+    document.onmousemove = e => {
+        const rect = bar.getBoundingClientRect();
+        let x = (e.clientX - rect.left) / rect.width;
+        x = Math.max(0, Math.min(1, x));
+        setPosition(Math.round(x * duration));
+    };
+
+    document.onmouseup = () => {
+        dragging = false;
+        document.onmousemove = null;
+        player.seekTo(currentTime, true);
+    };
+};

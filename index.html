@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class = "theme-dark">
     <head>
         <title>SpreadsheetPlayer</title>
 
@@ -12,7 +12,7 @@
     <body class = "px-5 py-5 is-fullheight">
         <div class="columns is-variable">
             <div class = "column is-three-fifths">
-                <div class="box videoContainer mx-2 my-2">
+                <div class="box videoContainer">
                     <div class = "player is-clipped">
                         <div class = "player" id="player"></div>
                     </div>
@@ -20,18 +20,50 @@
             </div>
             <div class = "column is-two-fifths">
                 <div class="box videoContainer">
-                    meow
+                    <div class = "subtitle is-3">
+                        Queue
+                    </div>
+                    <div id = "queue" class="fixed-grid has-1-cols">
+                        <div class="grid">
+                            <div class="cell">Cell 1</div>
+                            <div class="cell">Cell 2</div>
+                            <div class="cell">Cell 3</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
             
-        <div class = "box bottom">
-            <div class = "controlContainer">
-                <button class="button"><input id="csvFile" class="file-input" type="file" accept=".csv" onchange="loadCSV()"/><span class="material-symbols-outlined">upload</span></button>
-                <button class="button"><span class="material-symbols-outlined">skip_previous</span></button>
-                <button class="button" onclick="toggleablePause()"><span id = "toggleablePause" class="material-symbols-outlined">play_arrow</span></button> <!--Could be pause-->
-                <button class="button"><span class="material-symbols-outlined">skip_next</span></button>
-                <button class="button" onclick="toggleableVisibility()"><span id = "toggleableVisibility" class="material-symbols-outlined">visibility</span></button>
+        <div class = "box">
+            <div class = "columns">
+                <div class = "column is-narrow">
+                    <span>
+                        <button class="button"><span class="material-symbols-outlined">skip_previous</span></button>
+                        <button class="button" onclick="toggleablePause()"><span id = "toggleablePause" class="material-symbols-outlined">play_arrow</span></button> <!--Could be pause-->
+                        <button class="button"><span class="material-symbols-outlined">skip_next</span></button>
+                    </span>
+                </div>
+                <div class = "column is-narrow">
+                    <span>
+                        <div id = "timestamp">
+                            00:00/00:00
+                        </div>
+                    </span>
+                </div>
+                <div class = "column">
+                    <span>
+                        <div class="bar" id="bar">
+                            <div class="progress" id="progress"></div>
+                            <div class="handle" id="handle"></div>
+                        </div>
+                    </span>
+                </div>
+                <div class = "column is-narrow">
+                    <span>
+                        <button class="button"><input id="csvFile" class="file-input" type="file" accept=".csv" onchange="loadCSV()"/><span class="material-symbols-outlined">upload</span></button>
+                        <button class="button" onclick="toggleableVisibility()"><span id = "toggleableVisibility" class="material-symbols-outlined">visibility</span></button>
+                    </span>
+                </div>
             </div>
         </div>
 
