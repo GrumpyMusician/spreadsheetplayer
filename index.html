@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>SpreadsheetPlayer</title>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    </head>
+    <body class = "px-5 py-5 is-fullheight">
+        <div class="columns is-variable">
+            <div class = "column is-three-fifths">
+                <div class="box videoContainer">
+                    <div id="player" class = "px-5 py-5"></div>
+                </div>
+            </div>
+            <div class = "column is-two-fifths">
+                <div class="box videoContainer">
+                    meow
+                </div>
+            </div>
+        </div>
+
+        <script src = "player.js"></script>
+        <script src = "script.js"></script>
+            
+        <div class = "box bottom">
+            <div class = "controlContainer">
+                <button class="button"><span class="material-symbols-outlined">upload</span></button>
+                <button class="button"><span class="material-symbols-outlined">skip_previous</span></button>
+                <button class="button"><span class="material-symbols-outlined">play_arrow</span></button> <!--Could be pause-->
+                <button class="button"><span class="material-symbols-outlined">skip_next</span></button>
+            </div>
+        </div>
+    </body>
+</html>
