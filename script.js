@@ -6,7 +6,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 var player;
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
-    videoId: "HeQX2HjkcNo",
+    videoId: "rtYC2jx1LM0",
     playerVars: {
         'playsinline': 1,
         'controls': 0
@@ -29,15 +29,12 @@ function clock() {
 
     setDuration(timeTotal);
     setPosition(timeEllapsed);
-
-    
 }
-
 
 function onPlayerReady(event) {
     setTimeout(() => {
         event.target.playVideo();
-    }, 50);
+    }, 100);
     setInterval(clock, 100);
 }
 
@@ -79,42 +76,105 @@ function toggleableVisibility(){
     }
 }
 
-var CSV;
+function assembleList(list) {
+    let count = 0;
+    let namePos, composerPos, imagePos, yearPos, youtubePos;
+
+    for (let songs of list) {
+        if (count === 0){
+            for (let i = 0; i < songs.length; i++) {
+                if (songs[i] === "Name"){
+                    namePos = i;
+                }
+                else if (songs[i] === "Composer(s)" || songs[i] === "Composer"){
+                    composerPos = i;
+                }
+                else if (songs[i] === "Image"){
+                    imagePos = i;
+                }
+                else if (songs[i] === "Year"){
+                    yearPos = i;
+                }
+                else if (songs[i] === "Link" || songs[i] === "Youtube"){
+                    youtubePos = i;
+                }
+            }
+        }
+
+        else {
+            document.getElementById("queuebucket").innerHTML += `<div class="cell queuecard"> <div class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image"> <img class = "rawImage" src="` + songs[imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[namePos] + `</p> <p class="subtitle is-6">` + songs[composerPos] + ` · ` + songs[yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <button onclick = "skipTo(`+ count + `)"><span class="material-symbols-outlined p-2">music_note</span></button> </div> </div> </div> </div> </div>`;
+            if (count === 1){
+                player.loadVideoById(songs[youtubePos].slice(songs[youtubePos].lastIndexOf('/') + 1), 0)
+            }
+        }
+
+        count = count + 1;
+    }
+}
+
 function loadCSV() {
     const fileInput = document.getElementById('csvFile');
     const file = fileInput.files[0];
 
-    if (file) {
+    if (!file) {
+        alert('Please select a CSV file.');
+        return;
+    }
+
     const reader = new FileReader();
 
-    reader.onload = function(e) {
-        const csvData = e.target.result;
+    reader.onload = function (e) {
+        const text = e.target.result;
 
-        // Split into lines, removing empty ones
-        const lines = csvData.split(/\r?\n/).filter(line => line.trim().length > 0);
+        let rows = [];
+        let row = [];
+        let field = "";
+        let insideQuotes = false;
 
-        // Reformat with all fields quoted
-        const quotedLines = lines.map(line => {
-        // Match fields correctly (handles commas within quotes)
-        const fields = line.match(/(".*?"|[^",\r\n]+)(?=\s*,|\s*$)/g);
-        if (!fields) return '';
+        for (let i = 0; i < text.length; i++) {
+            const c = text[i];
 
-        // Wrap every field in quotes and escape inner quotes
-        return fields.map(field => {
-            let clean = field.replace(/^"|"$/g, ''); // remove existing outer quotes
-            clean = clean.replace(/"/g, '""');       // escape internal quotes
-            return `"${clean}"`;
-        }).join(',');
-        });
+            if (c === '"') {
+                // If we see two quotes in a row ("") → it's an escaped quote
+                if (insideQuotes && text[i + 1] === '"') {
+                    field += '"';
+                    i++; // skip the second quote
+                } else {
+                    insideQuotes = !insideQuotes;
+                }
+            }
+            else if (c === ',' && !insideQuotes) {
+                // end of field
+                row.push(field);
+                field = "";
+            }
+            else if ((c === '\n' || c === '\r') && !insideQuotes) {
+                // end of row
+                if (field.length > 0 || row.length > 0) {
+                    row.push(field);
+                    rows.push(row);
+                }
+                row = [];
+                field = "";
+            }
+            else {
+                field += c;
+            }
+        }
 
-        CSV = quotedLines.join('\n');
+        // push last line if not empty
+        if (field.length > 0 || row.length > 0) {
+            row.push(field);
+            rows.push(row);
+        }
+
+        // rows is now a clean 2D array with no double quotes
+        assembleList(rows);
     };
 
     reader.readAsText(file);
-    } else {
-    alert('Please select a CSV file.');
-    }
 }
+
 
 function toHMS(totalSeconds) {
     totalSeconds = Number(totalSeconds);
@@ -150,6 +210,8 @@ const progress = document.getElementById("progress");
 const handle = document.getElementById("handle");
 let currentTime = 0; // in seconds
 let dragging = false;
+
+handle.onmousedown = bar.onmousedown;
 
 function update() {
     const pct = (currentTime / duration) * 100;
