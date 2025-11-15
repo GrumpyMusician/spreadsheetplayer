@@ -27,10 +27,6 @@ html, body {
     overflow-x: hidden;
 }
 
-.queuecard {
-    background-color: #393d46;
-}
-
 button:focus {
     outline: none;
 }

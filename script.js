@@ -76,40 +76,72 @@ function toggleableVisibility(){
     }
 }
 
-function assembleList(list) {
-    let count = 0;
-    let namePos, composerPos, imagePos, yearPos, youtubePos;
+let music;
+class Music {
+    constructor(list) {
+        this.list = list;
+        this.currentId = 1;
 
-    for (let songs of list) {
-        if (count === 0){
-            for (let i = 0; i < songs.length; i++) {
-                if (songs[i] === "Name"){
-                    namePos = i;
-                }
-                else if (songs[i] === "Composer(s)" || songs[i] === "Composer"){
-                    composerPos = i;
-                }
-                else if (songs[i] === "Image"){
-                    imagePos = i;
-                }
-                else if (songs[i] === "Year"){
-                    yearPos = i;
-                }
-                else if (songs[i] === "Link" || songs[i] === "Youtube"){
-                    youtubePos = i;
+        let count = 0;
+
+        for (let songs of this.list) {
+            if (count === 0){
+                for (let i = 0; i < songs.length; i++) {
+                    if (songs[i] === "Name"){
+                        this.namePos = i;
+                    }
+                    else if (songs[i] === "Composer(s)" || songs[i] === "Composer"){
+                        this.composerPos = i;
+                    }
+                    else if (songs[i] === "Image"){
+                        this.imagePos = i;
+                    }
+                    else if (songs[i] === "Year"){
+                        this.yearPos = i;
+                    }
+                    else if (songs[i] === "Link" || songs[i] === "Youtube"){
+                        this.youtubePos = i;
+                    }
                 }
             }
-        }
 
-        else {
-            document.getElementById("queuebucket").innerHTML += `<div class="cell queuecard"> <div class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image"> <img class = "rawImage" src="` + songs[imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[namePos] + `</p> <p class="subtitle is-6">` + songs[composerPos] + ` · ` + songs[yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <button onclick = "skipTo(`+ count + `)"><span class="material-symbols-outlined p-2">music_note</span></button> </div> </div> </div> </div> </div>`;
-            if (count === 1){
-                player.loadVideoById(songs[youtubePos].slice(songs[youtubePos].lastIndexOf('/') + 1), 0)
+            else {
+                document.getElementById("queuebucket").innerHTML += `<div id = "song + ` + count + `" class="cell"> <div class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image"> <img class = "rawImage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <button onclick = "skipTo(`+ count +`)"><span class="material-symbols-outlined p-2">music_note</span></button> </div> </div> </div> </div> </div>`;
+                if (count === 1){
+                    player.loadVideoById(songs[this.youtubePos].slice(songs[this.youtubePos].lastIndexOf('/') + 1), 0)
+                }
             }
-        }
 
-        count = count + 1;
+            count = count + 1;
+        }
     }
+
+    nextSong(){
+        this.currentId += 1;
+        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+    }
+
+    prevSong(){
+        this.currentId -= 1;
+        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+    }
+
+    skipTo(num){
+        this.currentId = num;
+        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+    }
+} 
+
+function nextSong(){
+    music.nextSong();
+}
+
+function prevSong(){
+    music.prevSong();
+}
+
+function skipTo(num){
+    music.skipTo(num);
 }
 
 function loadCSV() {
@@ -169,12 +201,11 @@ function loadCSV() {
         }
 
         // rows is now a clean 2D array with no double quotes
-        assembleList(rows);
+        music = new Music(rows);
     };
 
     reader.readAsText(file);
 }
-
 
 function toHMS(totalSeconds) {
     totalSeconds = Number(totalSeconds);
