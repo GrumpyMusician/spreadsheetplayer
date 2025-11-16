@@ -21,7 +21,7 @@
             <div class = "column is-two-fifths">
                 <div class="box videoContainer">
                     <div class = "subtitle is-3">
-                        Song List
+                        Music
                     </div>
                     <div class="fixed-grid has-1-cols">
                         <div class = "grid" id = "queuebucket">
@@ -49,7 +49,13 @@
                                     <div id = "timestamp" class = "is-size-7">00:00/00:00</div>
                                 </div>
                                 <div class = "column has-text-centered">
-                                    <div id = "maininfo" class = "is-size-7">Meow</div>
+                                    <div>
+                                        <span class = "is-size-7"><b id = "music-title">Meow</b></span>
+                                        ·
+                                        <span class = "is-size-7" id = "music-composer">Meow</span>
+                                        ·
+                                        <span class = "is-size-7" id = "music-year">Meow</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -63,8 +69,8 @@
                 </div>
                 <div class = "column is-narrow">
                     <span>
-                        <button class="button"><span class="material-symbols-outlined">volume_up</span></button>
-                        <button class="button"><span class="material-symbols-outlined">repeat</span></button>
+                        <button class="button" onclick="toggleableVolume()"><span id = "toggleableVolume" class="material-symbols-outlined">volume_up</span></button>
+                        <button class="button" onclick="toggleableRepeat()"><span id = "toggleableRepeat" class="material-symbols-outlined">repeat</span></button>
                         <button class="button"><input id="csvFile" class="file-input" type="file" accept=".csv" onchange="loadCSV()"/><span class="material-symbols-outlined">upload</span></button>
                         <button class="button" onclick="toggleableVisibility()"><span id = "toggleableVisibility" class="material-symbols-outlined">visibility</span></button>
                     </span>

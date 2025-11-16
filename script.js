@@ -32,6 +32,7 @@ function clock() {
 }
 
 function onPlayerReady(event) {
+    player.setVolume(100);
     setTimeout(() => {
         event.target.playVideo();
     }, 100);
@@ -44,6 +45,16 @@ function onPlayerStateChange(event){
 
     if (state === 1){ //running
         button.textContent = "play_arrow";
+    } else if (state === 0){
+        button = document.getElementById("toggleableRepeat");
+
+        if (button.innerHTML == "repeat"){
+            nextSong();
+        } 
+        else if (button.innerHTML == "repeat_one"){
+            player.playVideo();
+        }
+
     }
     else {
         button.textContent = "pause";
@@ -76,6 +87,34 @@ function toggleableVisibility(){
     }
 }
 
+function toggleableRepeat(){
+    button = document.getElementById("toggleableRepeat");
+
+    if (button.innerHTML == "repeat"){
+        button.textContent = "repeat_one";
+    } 
+    else if (button.innerHTML == "repeat_one"){
+        button.textContent = "repeat";
+    }
+}
+
+function toggleableVolume(){
+    button = document.getElementById("toggleableVolume");
+    if (button.innerHTML == "volume_up"){
+        button.innerHTML = "volume_off";
+        player.setVolume(0)
+    } else if (button.innerHTML == "volume_off"){
+        button.innerHTML = "volume_mute";
+        player.setVolume(25)
+    } else if (button.innerHTML == "volume_mute"){
+        button.innerHTML = "volume_down";
+        player.setVolume(50)
+    } else if (button.innerHTML == "volume_down"){
+        button.innerHTML = "volume_up";
+        player.setVolume(100)
+    }
+}
+
 let music;
 class Music {
     constructor(list) {
@@ -102,13 +141,25 @@ class Music {
                     else if (songs[i] === "Link" || songs[i] === "Youtube"){
                         this.youtubePos = i;
                     }
+                    else if (songs[i] === "Alternatives"){
+                        this.alternativePos = i;
+                    }
                 }
             }
 
             else {
-                document.getElementById("queuebucket").innerHTML += `<div id = "song + ` + count + `" class="cell"> <div class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image"> <img class = "rawImage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <button onclick = "skipTo(`+ count +`)"><span class="material-symbols-outlined p-2">music_note</span></button> </div> </div> </div> </div> </div>`;
+                let injectHTML = "";
+                songs[this.alternativePos].split("\n").forEach(line => {
+                    const url = line.trim();
+                    if (!url) return;
+
+                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick="playMusic('`+ url + `', ` + count + `)">replace_audio</span>`;
+                });
+
+                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <div> <span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span> `+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
+                
                 if (count === 1){
-                    player.loadVideoById(songs[this.youtubePos].slice(songs[this.youtubePos].lastIndexOf('/') + 1), 0)
+                    this.update()
                 }
             }
 
@@ -117,18 +168,48 @@ class Music {
     }
 
     nextSong(){
+        this.removeCurrentlyPlaying()
         this.currentId += 1;
-        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+        this.update()
     }
 
     prevSong(){
+        this.removeCurrentlyPlaying()
         this.currentId -= 1;
-        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+        this.update()
     }
 
     skipTo(num){
+        this.removeCurrentlyPlaying()
         this.currentId = num;
-        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0)
+        this.update()
+    }
+
+    skipToAlt(num, url){
+        this.removeCurrentlyPlaying();
+        this.currentId = num;
+        this.updateAlt(url);
+    }
+
+    removeCurrentlyPlaying(){
+        document.getElementById("song" + this.currentId).classList.remove('currentlyPlaying');
+        document.getElementById("song" + this.currentId).classList.remove('currentlyPlayingAlt');
+    }
+
+    update(){
+        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
+        document.getElementById("song" + this.currentId).classList.add('currentlyPlaying');
+        document.getElementById("music-title").textContent  = this.list[this.currentId][this.namePos];
+        document.getElementById("music-composer").textContent  = this.list[this.currentId][this.composerPos];
+        document.getElementById("music-year").textContent  = this.list[this.currentId][this.yearPos];
+    }
+
+    updateAlt(url){
+        player.loadVideoById(url.slice(url.lastIndexOf('/') + 1), 0);
+        document.getElementById("song" + this.currentId).classList.add('currentlyPlayingAlt');
+        document.getElementById("music-title").textContent  = this.list[this.currentId][this.namePos];
+        document.getElementById("music-composer").textContent  = this.list[this.currentId][this.composerPos];
+        document.getElementById("music-year").textContent  = this.list[this.currentId][this.yearPos];
     }
 } 
 
@@ -142,6 +223,10 @@ function prevSong(){
 
 function skipTo(num){
     music.skipTo(num);
+}
+
+function playMusic(url, num){
+    music.skipToAlt(num, url);
 }
 
 function loadCSV() {
@@ -217,22 +302,6 @@ function toHMS(totalSeconds) {
     const mDisplay = String(minutes).padStart(2, '0') + ':';
     const sDisplay = String(seconds).padStart(2, '0');
     return hDisplay + mDisplay + sDisplay;
-}
-
-function toSec(hms) {
-    const parts = hms.split(':').map(Number);
-    if (parts.length === 3) {
-        // hh:mm:ss
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    } else if (parts.length === 2) {
-        // mm:ss
-        return parts[0] * 60 + parts[1];
-    } else if (parts.length === 1) {
-        // ss
-        return parts[0];
-    } else {
-        throw new Error("Invalid time format");
-    }
 }
 
 let duration = 30; // in seconds
