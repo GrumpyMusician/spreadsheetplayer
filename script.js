@@ -80,10 +80,12 @@ function toggleableVisibility(){
     if (button.innerHTML == "visibility"){
         button.textContent = "visibility_off";
         document.getElementById('player').style.filter = 'blur(50px)'; 
+        obfuscatePage();
     } 
     else if (button.innerHTML == "visibility_off"){
         button.textContent = "visibility";
-        document.getElementById('player').style.filter = 'none'; 
+        document.getElementById('player').style.filter = 'none';
+        deobfuscatePage();
     }
 }
 
@@ -156,7 +158,7 @@ class Music {
                     injectHTML += `<span class="material-symbols-outlined musicButton" onclick="playMusic('`+ url + `', ` + count + `)">replace_audio</span>`;
                 });
 
-                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p> </div> </div> </div> <div class = "column is-narrow"> <div> <span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span> `+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
+                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <div class="text-container"><p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p></div> </div> </div> </div> <div class = "column is-narrow"> <div> <span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span> `+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
                 
                 if (count === 1){
                     this.update()
@@ -199,17 +201,33 @@ class Music {
     update(){
         player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
         document.getElementById("song" + this.currentId).classList.add('currentlyPlaying');
-        document.getElementById("music-title").textContent  = this.list[this.currentId][this.namePos];
-        document.getElementById("music-composer").textContent  = this.list[this.currentId][this.composerPos];
-        document.getElementById("music-year").textContent  = this.list[this.currentId][this.yearPos];
+        if (button.innerHTML == "visibility_off"){
+            this.updateTextObfuscation()
+        } else {
+            this.updateText()
+        }
     }
 
     updateAlt(url){
         player.loadVideoById(url.slice(url.lastIndexOf('/') + 1), 0);
         document.getElementById("song" + this.currentId).classList.add('currentlyPlayingAlt');
+        if (button.innerHTML == "visibility_off"){
+            this.updateTextObfuscation()
+        } else {
+            this.updateText()
+        }
+    }
+
+    updateText(){
         document.getElementById("music-title").textContent  = this.list[this.currentId][this.namePos];
         document.getElementById("music-composer").textContent  = this.list[this.currentId][this.composerPos];
         document.getElementById("music-year").textContent  = this.list[this.currentId][this.yearPos];
+    }
+
+    updateTextObfuscation(){
+        document.getElementById("music-title").textContent = toZhuyin(this.list[this.currentId][this.namePos]);
+        document.getElementById("music-composer").textContent = toZhuyin(this.list[this.currentId][this.composerPos]);
+        document.getElementById("music-year").textContent = toZhuyin(this.list[this.currentId][this.yearPos]);
     }
 } 
 
@@ -361,3 +379,51 @@ bar.onmousedown = () => {
         player.seekTo(currentTime, true);
     };
 };
+
+const map = {
+    "ch": "ㄔ", "sh": "ㄕ", "th": "ㄘ", "ng": "ㄫ",
+    "b": "ㄅ", "c": "ㄠ", "d": "ㄉ", "f": "ㄈ", "g": "ㄍ",
+    "h": "ㄏ", "j": "ㄐ", "k": "ㄎ", "l": "ㄌ", "m": "ㄇ",
+    "n": "ㄓ", "p": "ㄆ", "q": "ㄩ", "r": "ㄖ", "s": "ㄙ",
+    "t": "ㄊ", "v": "ㄪ", "w": "ㄨ", "x": "ㆲ", "y": "ㄬ", "z": "ㄗ",
+    "a": "ㄡ", "e": "ㄝ", "i": "ㄧ", "o": "ㄛ", "u": "ㄦ",
+    "0": "ロ", "1": "チ", "2": "ニ", "3": "サ", "4": "シ",
+    "5": "ヨ", "6": "ク", "7": "ナ", "8": "ハ", "9": "ウ"
+};
+
+const digraphs = ["ch","sh","th","ng"];
+const regex = new RegExp(`(${digraphs.join("|")}|.)`, "gi");
+
+function flattenDiacritics(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function toZhuyin(text) {
+    const flattened = flattenDiacritics(text);
+    return flattened.replace(regex, m => map[m.toLowerCase()] || m);
+}
+
+const originalMap = new WeakMap();
+
+function obfuscatePage() {
+    function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE && (!node.parentNode.classList || !node.parentNode.classList.contains("material-symbols-outlined"))) {
+            if (!originalMap.has(node)) originalMap.set(node, node.textContent);
+                node.textContent = toZhuyin(originalMap.get(node));
+            } else {
+            node.childNodes.forEach(walk);
+        }
+    }
+    walk(document.body);
+}
+
+function deobfuscatePage() {
+    function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE && (!node.parentNode.classList || !node.parentNode.classList.contains("material-symbols-outlined"))) {
+        if (originalMap.has(node)) node.textContent = originalMap.get(node);
+        } else {
+        node.childNodes.forEach(walk);
+        }
+    }
+    walk(document.body);
+}
