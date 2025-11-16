@@ -120,7 +120,15 @@ button:focus {
     object-fit: cover;
     border-radius: 6px;
     overflow: hidden;
-    filter: blur(0.35px);
+}
+
+.is-48x48{
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.rawimage{
+    filter: blur(var(--blur-amount, 0.3px));
 }
 
 .media-content {

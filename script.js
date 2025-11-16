@@ -80,12 +80,14 @@ function toggleableVisibility(){
     if (button.innerHTML == "visibility"){
         button.textContent = "visibility_off";
         document.getElementById('player').style.filter = 'blur(50px)'; 
+        document.documentElement.style.setProperty('--blur-amount', '4px');
         obfuscatePage();
         music.updateTextObfuscation();
     } 
     else if (button.innerHTML == "visibility_off"){
         button.textContent = "visibility";
         document.getElementById('player').style.filter = 'none';
+        document.documentElement.style.setProperty('--blur-amount', '0.3px');
         deobfuscatePage();
         music.updateText();
     }
