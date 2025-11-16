@@ -65,11 +65,9 @@ function toggleablePause(){
     button = document.getElementById("toggleablePause");
     
     if (button.innerHTML == "play_arrow"){
-        button.textContent = "pause";
         player.pauseVideo();
     } 
     else if (button.innerHTML == "pause"){
-        button.textContent = "play_arrow";
         player.playVideo();
     }
 }
