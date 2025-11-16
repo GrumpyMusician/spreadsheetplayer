@@ -201,7 +201,7 @@ class Music {
     update(){
         player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
         document.getElementById("song" + this.currentId).classList.add('currentlyPlaying');
-        if (button.innerHTML == "visibility_off"){
+        if (document.getElementById("toggleableVisibility").innerHTML == "visibility_off"){
             this.updateTextObfuscation()
         } else {
             this.updateText()
@@ -211,7 +211,7 @@ class Music {
     updateAlt(url){
         player.loadVideoById(url.slice(url.lastIndexOf('/') + 1), 0);
         document.getElementById("song" + this.currentId).classList.add('currentlyPlayingAlt');
-        if (button.innerHTML == "visibility_off"){
+        if (document.getElementById("toggleableVisibility").innerHTML == "visibility_off"){
             this.updateTextObfuscation()
         } else {
             this.updateText()
