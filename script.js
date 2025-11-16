@@ -81,11 +81,13 @@ function toggleableVisibility(){
         button.textContent = "visibility_off";
         document.getElementById('player').style.filter = 'blur(50px)'; 
         obfuscatePage();
+        music.updateTextObfuscation();
     } 
     else if (button.innerHTML == "visibility_off"){
         button.textContent = "visibility";
         document.getElementById('player').style.filter = 'none';
         deobfuscatePage();
+        music.updateText();
     }
 }
 
