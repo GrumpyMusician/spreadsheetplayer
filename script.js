@@ -153,6 +153,11 @@ class Music {
 
             else {
                 let injectHTML = "";
+
+                if (removeWhitespace(songs[this.youtubePos])){
+                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span>`
+                }
+
                 songs[this.alternativePos].split("\n").forEach(line => {
                     const url = line.trim();
                     if (!url) return;
@@ -160,7 +165,7 @@ class Music {
                     injectHTML += `<span class="material-symbols-outlined musicButton" onclick="playMusic('`+ url + `', ` + count + `)">replace_audio</span>`;
                 });
 
-                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <div class="text-container"><p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p></div> </div> </div> </div> <div class = "column is-narrow"> <div> <span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span> `+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
+                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <div class="text-container"><p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p></div> </div> </div> </div> <div class = "column is-narrow"> <div>`+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
                 
                 if (count === 1){
                     this.update()
@@ -201,7 +206,12 @@ class Music {
     }
 
     update(){
-        player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
+        if (removeWhitespace(this.list[this.currentId][this.youtubePos])){
+            player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
+        } else {
+            this.updateAlt(this.list[this.currentId][this.alternativePos].slice(0, this.list[this.currentId][this.alternativePos].indexOf("\n")))
+        }
+
         document.getElementById("song" + this.currentId).classList.add('currentlyPlaying');
         if (document.getElementById("toggleableVisibility").innerHTML == "visibility_off"){
             this.updateTextObfuscation()
@@ -247,6 +257,11 @@ function skipTo(num){
 
 function playMusic(url, num){
     music.skipToAlt(num, url);
+}
+
+function removeWhitespace(input) {
+    inputString = String(input);
+    return inputString.replace(/\s/g, "");
 }
 
 function loadCSV() {
@@ -324,14 +339,13 @@ function toHMS(totalSeconds) {
     return hDisplay + mDisplay + sDisplay;
 }
 
-let duration = 30; // in seconds
+let duration = 30;
+let currentTime = 0;
+let dragging = false;
+
 const bar = document.getElementById("bar");
 const progress = document.getElementById("progress");
 const handle = document.getElementById("handle");
-let currentTime = 0; // in seconds
-let dragging = false;
-
-handle.onmousedown = bar.onmousedown;
 
 function update() {
     const pct = (currentTime / duration) * 100;
@@ -340,6 +354,7 @@ function update() {
 }
 
 function setPosition(seconds) {
+    if (dragging) return;
     let v = Math.round(Number(seconds));
     if (isNaN(v)) return;
     currentTime = Math.max(0, Math.min(duration, v));
@@ -358,29 +373,43 @@ function setDuration(seconds) {
     update();
 }
 
-bar.onclick = e => {
+function beginDrag(e) {
+    dragging = true;
+    moveDrag(e);
+    document.addEventListener("mousemove", moveDrag);
+    document.addEventListener("mouseup", endDrag);
+}
+
+function moveDrag(e) {
+    const rect = bar.getBoundingClientRect();
+    let x = (e.clientX - rect.left) / rect.width;
+    x = Math.max(0, Math.min(1, x));
+    currentTime = Math.round(x * duration);
+    update();
+}
+
+function endDrag() {
+    dragging = false;
+    document.removeEventListener("mousemove", moveDrag);
+    document.removeEventListener("mouseup", endDrag);
+    const t = Math.round(player.getCurrentTime());
+    if (t !== currentTime) player.seekTo(currentTime, true);
+}
+
+bar.addEventListener("mousedown", beginDrag);
+handle.addEventListener("mousedown", e => { e.stopPropagation(); beginDrag(e); });
+
+bar.addEventListener("click", e => {
     if (dragging) return;
     const x = e.offsetX / bar.clientWidth;
-    setPosition(Math.round(x * duration));
-    player.seekTo(currentTime, true);
-};
+    const newTime = Math.round(x * duration);
+    if (newTime !== Math.round(player.getCurrentTime())) {
+        currentTime = newTime;
+        update();
+        player.seekTo(newTime, true);
+    }
+});
 
-bar.onmousedown = () => {
-    dragging = true;
-
-    document.onmousemove = e => {
-        const rect = bar.getBoundingClientRect();
-        let x = (e.clientX - rect.left) / rect.width;
-        x = Math.max(0, Math.min(1, x));
-        setPosition(Math.round(x * duration));
-    };
-
-    document.onmouseup = () => {
-        dragging = false;
-        document.onmousemove = null;
-        player.seekTo(currentTime, true);
-    };
-};
 
 const map = {
     "ch": "ㄔ", "sh": "ㄕ", "th": "ㄘ", "ng": "ㄫ",
