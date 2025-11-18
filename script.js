@@ -123,125 +123,159 @@ let music;
 class Music {
     constructor(list) {
         this.list = list;
-        this.currentId = 1;
+        this.activeId = 1;
+        this.altIndex = 0;
 
         let count = 0;
 
         for (let songs of this.list) {
-            if (count === 0){
+            if (count === 0) {
                 for (let i = 0; i < songs.length; i++) {
-                    if (songs[i] === "Name"){
-                        this.namePos = i;
-                    }
-                    else if (songs[i] === "Composer(s)" || songs[i] === "Composer"){
-                        this.composerPos = i;
-                    }
-                    else if (songs[i] === "Image"){
-                        this.imagePos = i;
-                    }
-                    else if (songs[i] === "Year"){
-                        this.yearPos = i;
-                    }
-                    else if (songs[i] === "Link" || songs[i] === "Youtube"){
-                        this.youtubePos = i;
-                    }
-                    else if (songs[i] === "Alternatives"){
-                        this.alternativePos = i;
-                    }
+                    if (songs[i] === "Name") this.namePos = i;
+                    else if (songs[i] === "Composer(s)" || songs[i] === "Composer") this.composerPos = i;
+                    else if (songs[i] === "Image") this.imagePos = i;
+                    else if (songs[i] === "Year") this.yearPos = i;
+                    else if (songs[i] === "Link" || songs[i] === "Youtube") this.youtubePos = i;
+                    else if (songs[i] === "Alternatives") this.alternativePos = i;
                 }
-            }
-
-            else {
+            } else {
                 let injectHTML = "";
 
-                if (removeWhitespace(songs[this.youtubePos])){
-                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick = "skipTo(`+ count +`)">music_note</span>`
+                if (removeWhitespace(songs[this.youtubePos])) {
+                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick="skipTo(${count},0)">music_note</span>`;
                 }
 
-                songs[this.alternativePos].split("\n").forEach(line => {
-                    const url = line.trim();
-                    if (!url) return;
+                let rawAlt = songs[this.alternativePos] || "";
+                let altList = [];
 
-                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick="playMusic('`+ url + `', ` + count + `)">replace_audio</span>`;
-                });
-
-                document.getElementById("queuebucket").innerHTML += `<div class="cell"> <div id = "song` + count + `" class="card"> <div class="card-content"> <div class = "columns"> <div class = "column"> <div class="media"> <div class="media-left"> <figure class="image is-48x48"> <img class = "rawimage" src="` + songs[this.imagePos] + `" /> </figure> </div> <div class="media-content"> <div class="text-container"><p class="title is-6">` + songs[this.namePos] + `</p> <p class="subtitle is-6">` + songs[this.composerPos] + ` · ` + songs[this.yearPos] + `</p></div> </div> </div> </div> <div class = "column is-narrow"> <div>`+ injectHTML + ` </div> </div> </div> </div> </div> </div>`;
-                
-                if (count === 1){
-                    this.update()
+                if (typeof rawAlt === "string" && rawAlt.trim().length > 0) {
+                    altList = rawAlt.split(",").map(v => v.trim()).filter(Boolean);
                 }
+
+                this.list[count][this.alternativePos] = altList;
+
+                for (let i = 1; i <= altList.length; i++) {
+                    injectHTML += `<span class="material-symbols-outlined musicButton" onclick="skipTo(${count},${i})">replace_audio</span>`;
+                }
+
+                document.getElementById("queuebucket").innerHTML += `
+                <div class="cell">
+                    <div id="song${count}" class="card">
+                        <div class="card-content">
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img class="rawimage" src="${songs[this.imagePos]}" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <div class="text-container">
+                                                <p class="title is-6">${songs[this.namePos]}</p>
+                                                <p class="subtitle is-6">${songs[this.composerPos]} · ${songs[this.yearPos]}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column is-narrow">
+                                    <div>${injectHTML}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             }
-
-            count = count + 1;
+            count++;
         }
+
+        this.update();
     }
 
-    nextSong(){
-        this.removeCurrentlyPlaying()
-        this.currentId += 1;
-        this.update()
+    removeCurrentlyPlaying() {
+        const el = document.getElementById("song" + this.activeId);
+        if (!el) return;
+        el.classList.remove("currentlyPlaying");
+        el.classList.remove("currentlyPlayingAlt");
     }
 
-    prevSong(){
-        this.removeCurrentlyPlaying()
-        this.currentId -= 1;
-        this.update()
+    clampActiveId() {
+        this.activeId = Math.max(1, Math.min(this.activeId, this.list.length - 1));
     }
 
-    skipTo(num){
-        this.removeCurrentlyPlaying()
-        this.currentId = num;
-        this.update()
+    clampAltIndex() {
+        const alts = this.list[this.activeId][this.alternativePos] || [];
+        this.altIndex = Math.max(0, Math.min(this.altIndex, alts.length));
     }
 
-    skipToAlt(num, url){
+    nextSong() {
         this.removeCurrentlyPlaying();
-        this.currentId = num;
-        this.updateAlt(url);
+        const alts = this.list[this.activeId][this.alternativePos] || [];
+        if (this.altIndex < alts.length) this.altIndex++;
+        else { this.activeId++; this.altIndex = 0; }
+        this.clampActiveId();
+        this.clampAltIndex();
+        this.update();
     }
 
-    removeCurrentlyPlaying(){
-        document.getElementById("song" + this.currentId).classList.remove('currentlyPlaying');
-        document.getElementById("song" + this.currentId).classList.remove('currentlyPlayingAlt');
-    }
-
-    update(){
-        if (removeWhitespace(this.list[this.currentId][this.youtubePos])){
-            player.loadVideoById(this.list[this.currentId][this.youtubePos].slice(this.list[this.currentId][this.youtubePos].lastIndexOf('/') + 1), 0);
-        } else {
-            this.updateAlt(this.list[this.currentId][this.alternativePos].slice(0, this.list[this.currentId][this.alternativePos].indexOf("\n")))
+    prevSong() {
+        this.removeCurrentlyPlaying();
+        const alts = this.list[this.activeId][this.alternativePos] || [];
+        if (this.altIndex > 0) this.altIndex--;
+        else {
+            this.activeId--;
+            this.clampActiveId();
+            const newAlts = this.list[this.activeId][this.alternativePos] || [];
+            this.altIndex = newAlts.length;
         }
+        this.clampActiveId();
+        this.clampAltIndex();
+        this.update();
+    }
 
-        document.getElementById("song" + this.currentId).classList.add('currentlyPlaying');
-        if (document.getElementById("toggleableVisibility").innerHTML == "visibility_off"){
-            this.updateTextObfuscation()
+    skipTo(entryIndex, altIndex) {
+        this.removeCurrentlyPlaying();
+        this.activeId = Number(entryIndex);
+        this.altIndex = Number(altIndex);
+        this.clampActiveId();
+        this.clampAltIndex();
+        this.update();
+    }
+
+    update() {
+        this.clampActiveId();
+        this.clampAltIndex();
+
+        const row = this.list[this.activeId];
+        const alts = row[this.alternativePos] || [];
+
+        let vid = this.altIndex === 0 ? row[this.youtubePos] : alts[this.altIndex - 1];
+        const videoId = vid ? vid.slice(vid.lastIndexOf("/") + 1) : null;
+
+        if (videoId) player.loadVideoById(videoId, 0);
+
+        const el = document.getElementById("song" + this.activeId);
+        if (el) el.classList.add(this.altIndex === 0 ? "currentlyPlaying" : "currentlyPlayingAlt");
+
+        if (document.getElementById("toggleableVisibility").innerHTML === "visibility_off") {
+            this.updateTextObfuscation();
         } else {
-            this.updateText()
+            this.updateText();
         }
     }
 
-    updateAlt(url){
-        player.loadVideoById(url.slice(url.lastIndexOf('/') + 1), 0);
-        document.getElementById("song" + this.currentId).classList.add('currentlyPlayingAlt');
-        if (document.getElementById("toggleableVisibility").innerHTML == "visibility_off"){
-            this.updateTextObfuscation()
-        } else {
-            this.updateText()
-        }
+    updateText() {
+        document.getElementById("music-title").textContent = this.list[this.activeId][this.namePos];
+        document.getElementById("music-composer").textContent = this.list[this.activeId][this.composerPos];
+        document.getElementById("music-year").textContent = this.list[this.activeId][this.yearPos];
     }
 
-    updateText(){
-        document.getElementById("music-title").textContent  = this.list[this.currentId][this.namePos];
-        document.getElementById("music-composer").textContent  = this.list[this.currentId][this.composerPos];
-        document.getElementById("music-year").textContent  = this.list[this.currentId][this.yearPos];
+    updateTextObfuscation() {
+        document.getElementById("music-title").textContent = toZhuyin(this.list[this.activeId][this.namePos]);
+        document.getElementById("music-composer").textContent = toZhuyin(this.list[this.activeId][this.composerPos]);
+        document.getElementById("music-year").textContent = toZhuyin(this.list[this.activeId][this.yearPos]);
     }
-
-    updateTextObfuscation(){
-        document.getElementById("music-title").textContent = toZhuyin(this.list[this.currentId][this.namePos]);
-        document.getElementById("music-composer").textContent = toZhuyin(this.list[this.currentId][this.composerPos]);
-        document.getElementById("music-year").textContent = toZhuyin(this.list[this.currentId][this.yearPos]);
-    }
-} 
+}
 
 function nextSong(){
     music.nextSong();
@@ -251,13 +285,10 @@ function prevSong(){
     music.prevSong();
 }
 
-function skipTo(num){
-    music.skipTo(num);
+function skipTo(entryIndex, altIndex){
+    music.skipTo(entryIndex, altIndex);
 }
 
-function playMusic(url, num){
-    music.skipToAlt(num, url);
-}
 
 function removeWhitespace(input) {
     inputString = String(input);
@@ -287,21 +318,18 @@ function loadCSV() {
             const c = text[i];
 
             if (c === '"') {
-                // If we see two quotes in a row ("") → it's an escaped quote
                 if (insideQuotes && text[i + 1] === '"') {
                     field += '"';
-                    i++; // skip the second quote
+                    i++;
                 } else {
                     insideQuotes = !insideQuotes;
                 }
             }
             else if (c === ',' && !insideQuotes) {
-                // end of field
                 row.push(field);
                 field = "";
             }
             else if ((c === '\n' || c === '\r') && !insideQuotes) {
-                // end of row
                 if (field.length > 0 || row.length > 0) {
                     row.push(field);
                     rows.push(row);
@@ -314,13 +342,11 @@ function loadCSV() {
             }
         }
 
-        // push last line if not empty
         if (field.length > 0 || row.length > 0) {
             row.push(field);
             rows.push(row);
         }
 
-        // rows is now a clean 2D array with no double quotes
         music = new Music(rows);
     };
 
