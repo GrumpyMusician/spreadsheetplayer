@@ -1,11 +1,11 @@
 html, body {
     height: 100%;
-    overflow: hidden;
-    scrollbar-width: none; /* For Firefox */
+    /*overflow: hidden;*/
+    scrollbar-width: none;
 }
 
-.columns {
-    height: 90%;
+.columns.is-variable{
+    height: 89%;
 }
 
 .column {

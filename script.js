@@ -162,7 +162,7 @@ class Music {
                 <div class="cell">
                     <div id="song${count}" class="card">
                         <div class="card-content">
-                            <div class="columns">
+                            <div class="columns is-mobile">
                                 <div class="column">
                                     <div class="media">
                                         <div class="media-left">
@@ -265,15 +265,54 @@ class Music {
     }
 
     updateText() {
-        document.getElementById("music-title").textContent = this.list[this.activeId][this.namePos];
-        document.getElementById("music-composer").textContent = this.list[this.activeId][this.composerPos];
-        document.getElementById("music-year").textContent = this.list[this.activeId][this.yearPos];
+        let injectMetadata = ""
+
+        if (removeWhitespace(this.list[this.activeId][this.namePos])){
+            injectMetadata += "<b>" + this.list[this.activeId][this.namePos] + "</b>"
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.namePos]) && removeWhitespace(this.list[this.activeId][this.composerPos])){
+            injectMetadata += " · ";
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.composerPos])){
+            injectMetadata += this.list[this.activeId][this.composerPos]
+        }
+
+        if ((removeWhitespace(this.list[this.activeId][this.composerPos]) && (removeWhitespace(this.list[this.activeId][this.yearPos])) || (removeWhitespace(this.list[this.activeId][this.namePos]) && removeWhitespace(this.list[this.activeId][this.yearPos])))){
+            injectMetadata += " · ";
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.yearPos])){
+            injectMetadata += this.list[this.activeId][this.yearPos]
+        }
+
+        document.getElementById("musicMetadata").innerHTML = injectMetadata;
     }
 
     updateTextObfuscation() {
-        document.getElementById("music-title").textContent = toZhuyin(this.list[this.activeId][this.namePos]);
-        document.getElementById("music-composer").textContent = toZhuyin(this.list[this.activeId][this.composerPos]);
-        document.getElementById("music-year").textContent = toZhuyin(this.list[this.activeId][this.yearPos]);
+        let injectMetadata = ""
+        if (removeWhitespace(this.list[this.activeId][this.namePos])){
+            injectMetadata += toZhuyin(this.list[this.activeId][this.namePos])
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.namePos]) && removeWhitespace(this.list[this.activeId][this.composerPos])){
+            injectMetadata += " · ";
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.composerPos])){
+            injectMetadata += toZhuyin(this.list[this.activeId][this.composerPos])
+        }
+
+        if ((removeWhitespace(this.list[this.activeId][this.composerPos]) && (removeWhitespace(this.list[this.activeId][this.yearPos])) || (removeWhitespace(this.list[this.activeId][this.namePos]) && removeWhitespace(this.list[this.activeId][this.yearPos])))){
+            injectMetadata += " · ";
+        }
+
+        if (removeWhitespace(this.list[this.activeId][this.yearPos])){
+            injectMetadata += toZhuyin(this.list[this.activeId][this.yearPos])
+        }
+
+        document.getElementById("musicMetadata").innerHTML = injectMetadata;
     }
 }
 
