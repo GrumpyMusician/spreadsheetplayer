@@ -11,14 +11,14 @@
     </head>
     <body class = "px-5 py-5 is-fullheight">
         <div class="columns is-variable">
-            <div class = "column is-three-fifths">
+            <div class = "column is-three-fifths" id = "visualcolumn">
                 <div class="box videoContainer">
                     <div class = "player is-clipped">
                         <div class = "player" id="player"></div>
                     </div>
                 </div>
             </div>
-            <div class = "column is-two-fifths">
+            <div class = "column is-two-fifths" id = "queuecolumn">
                 <div class="box videoContainer">
                     <div class = "subtitle is-3">
                         Music
@@ -32,19 +32,20 @@
             </div>
         </div>
             
-        <div class = "box">
+        <div class = "box" id = "mediacenter">
             <div class = "columns">
-                <div class = "column is-narrow">
+                <div class = "column is-narrow is-align-items-center">
                     <span>
                         <button class="button" onclick = "prevSong()"><span class="material-symbols-outlined">skip_previous</span></button>
                         <button class="button" onclick="toggleablePause()"><span id = "toggleablePause" class="material-symbols-outlined">play_arrow</span></button> <!--Could be pause-->
                         <button class="button" onclick = "nextSong()" ><span class="material-symbols-outlined">skip_next</span></button>
+                        <button class="button" onclick = "toggleableMusicQueue(true)" id = "getQueueButton"><span class="material-symbols-outlined">queue_music</span></button>
                     </span>
                 </div>
                 <div class = "column">
                     <span class = "fixed-grid has-1-cols">
                         <div class = "cell mt-1">
-                            <div class = "columns">
+                            <div class = "columns is-mobile is-gapless">
                                 <div class = "column is-narrow">
                                     <div id = "timestamp" class = "is-size-7">00:00/00:00</div>
                                 </div>
@@ -61,7 +62,7 @@
                         </div>
                     </span>
                 </div>
-                <div class = "column is-narrow">
+                <div class = "column is-narrow is-align-items-center">
                     <span>
                         <button class="button" onclick="toggleableVolume()"><span id = "toggleableVolume" class="material-symbols-outlined">volume_up</span></button>
                         <button class="button" onclick="toggleableRepeat()"><span id = "toggleableRepeat" class="material-symbols-outlined">repeat</span></button>

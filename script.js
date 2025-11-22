@@ -61,6 +61,24 @@ function onPlayerStateChange(event){
     }
 }
 
+function toggleableMusicQueue(throughButton){
+    const div1 = document.getElementById('queuecolumn');
+    const div2 = document.getElementById('visualcolumn');
+
+    if (throughButton){
+        if (div1.style.display === 'none' || div1.style.display === '') {
+            div1.style.display = 'flex';
+            div2.style.display = 'none';
+        } else {
+            div1.style.display = 'none';
+            div2.style.display = 'block';
+        }
+    } else {
+        div1.style.display = '';
+        div2.style.display = '';
+    }
+}
+
 function toggleablePause(){
     button = document.getElementById("toggleablePause");
     
@@ -523,3 +541,22 @@ function deobfuscatePage() {
     }
     walk(document.body);
 }
+
+function adjustVideoHeight() {
+    const queue = document.querySelector('#mediacenter');
+    const video = document.querySelector('.videoContainer');
+
+    if (!queue || !video) return;
+
+    let queueHeight = queue.offsetHeight + 68;
+    let viewportHeight = window.innerHeight;
+
+    document.documentElement.style.setProperty('--mobilevideoheight', (viewportHeight - queueHeight) + 'px');
+
+    toggleableMusicQueue(false);
+}
+
+adjustVideoHeight();
+
+window.addEventListener('resize', adjustVideoHeight);
+window.addEventListener('orientationchange', adjustVideoHeight);
